@@ -1,0 +1,26 @@
+{
+  "name": "jabbarnes-the-hutt",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/jabbarnes-the-hutt.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "babel": "^4.6.6",
+    "es6-module-loader": "^0.15.0"
+  },
+  "devDependencies": {
+    "babelify": "^5.0.4",
+    "browserify": "^9.0.3",
+    "gulp": "^3.8.11",
+    "gulp-babel": "^4.0.0",
+    "gulp-uglifyjs": "^0.6.0",
+    "vinyl-source-stream": "^1.1.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
