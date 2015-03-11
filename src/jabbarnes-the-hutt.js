@@ -1,38 +1,39 @@
 import Vector from './vector';
 import Body from './body';
+import Node from './node';
 
 class JabbarnesTree {
 
 	constructor(theta) {
-		this.root = new Quad(Number.MAX_VALUE);
+		this.root = new Quad(Number.MAX_VALUE / 2);
 		this.theta = theta;
 	}
 
-	insert(body, ...bodies) {
+	insert(node, ...nodes) {
 		let commonParent = this.root, subdivide, quad;
-		let oldBody = body instanceof Body ? body : new Body(body);
+		let oldNode = node instanceof Node ? node : new Node(node);
 
 		do {
 			quad = commonParent;
-			body = oldBody;
-			oldBody = undefined;
+			node = oldNode;
+			oldNode = undefined;
 			do {
 				subdivide = false;
 
-				quad = quad.getQuadFor(body.pos);
-				quad.massCenterBody = quad.massCenterBody.recenter(body);
+				quad = quad.getQuadFor(node.pos);
+				quad.massCenterBody.recenter(node.body);
 
-				if (quad.body) {
-					oldBody = quad.body;
-					quad.body = undefined;
+				if (quad.node) {
+					oldNode = quad.node;
+					quad.node = undefined;
 					commonParent = quad;
 					subdivide = true;
 				}
 			} while (subdivide || quad.isInternal());
-			quad.body = body;
-		} while (oldBody);
+			quad.node = node;
+		} while (oldNode);
 
-		bodies.forEach((b) => this.insert(b));
+		nodes.forEach((node) => this.insert(node));
 	}
 
 	iterate(fn) {
@@ -46,30 +47,30 @@ class JabbarnesTree {
 		} while (quads.length);
 	}
 
-	getBodies() {
-		let bodies = [];
+	getNodes() {
+		let nodes = [];
 
-		this.iterate((n) => {if (n.body) bodies.push(n.body)});
+		this.iterate((quad) => {if (quad.node) nodes.push(quad.node)});
 
-		return bodies;
+		return nodes;
 	}
 
 	step(dt) {
-		let bodies = this.getBodies().map((b) => {
-			b = this.addForcesTo(b);
-			return b.step(dt);
+		let nodes = this.getNodes().map((node) => {
+			this.addForcesTo(node.body);
+			return node.step(dt);
 		});
 		this.root = new Quad(this.root.halfRad);
 
-		this.insert(...bodies);
+		this.insert(...nodes);
 	}
 
 	addForcesTo(body) {
 		let theta = this.theta;
 		this.iterate((quad) => {
 			let dist = quad.massCenterBody.pos.dist(body.pos);
-			if (quad.body || (2 * quad.halfRad) / dist > theta) {
-				body = body.addForce(quad.massCenterBody);
+			if (quad.body || (2 * quad.halfRad) / dist < theta) {
+				body.addForce(quad.massCenterBody);
 				return false;
 			}
 		});
@@ -106,5 +107,24 @@ class Quad {
 	}
 
 }
+
+//var trees = [];
+//
+//var points = [];
+//function rnd() { return Math.round((Math.random() > .5 ? 1 : -1) * Math.random() * 90); }
+//for (var i = 0; i < 5; i++) {
+//	points.push({'body': {'x':rnd(), 'y':rnd()}});
+//}
+//
+//var tr = trees[0] = new JabbarnesTree();
+//tr.insert(...points);
+//var pfn = (bods) => bods.map((b) => b.pos);
+//console.log(pfn(tr.getNodes()));
+//tr.step(10);
+//console.log(pfn(tr.getNodes()));
+//tr.step(10);
+//console.log(pfn(tr.getNodes()));
+
+
 
 export default JabbarnesTree;

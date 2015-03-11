@@ -1,6 +1,8 @@
 import Vector from './vector';
 
-const G = -10;
+const G = 15;
+
+const G_BOD = {'pos': new Vector(0, 0), 'mass': -100};
 
 class Body {
 
@@ -12,30 +14,25 @@ class Body {
 	}
 
 	step(dt) {
-		let mass = this.mass;
-		let gravPull = this.pos.norm().neg().mul(100 * dt);
-		let vel = this.vel.add(this.force.add(gravPull)
-			.div(mass).mul(dt)).mul(Math.pow(.9, dt)).max(20);
-		let pos = this.pos.add(vel.mul(dt));
-		return new Body(pos, mass, vel);
+		//this.addForce(G_BOD);
+		this.force = this.force.add(this.force.norm().neg().mul(10 * G * dt * dt));
+
+		this.vel = this.vel.add(this.force.mul(dt * dt));
+		this.pos = this.pos.add(this.vel.mul(dt));
+		this.force = Vector.zero();
 	}
 
 	addForce(b) {
-		if (this.pos.equals(b.pos)) return this;
-		let pos = this.pos, mass = this.mass;
+		if (this.pos.equals(b.pos)) return;
+		let mass = this.mass;
 		let totalMass = G * mass * b.mass;
-		let tween = b.pos.sub(pos);
-		return new Body(
-			pos, mass, this.vel,
-			this.force.add(tween.mul(totalMass / Math.pow(tween.mag(), 2)))
-		);
+		let tween = this.pos.sub(b.pos);
+		this.force = this.force.add(tween.mul(totalMass / Math.pow(tween.mag(), 2)));
 	}
 
 	recenter(body) {
-		return new Body(
-			this.pos.add(body.pos.mul(body.mass)).div(this.mass),
-			this.mass + body.mass
-		);
+		this.pos = this.pos.add(body.pos.mul(body.mass)).div(this.mass);
+		this.mass = this.mass + body.mass;
 	}
 
 }
